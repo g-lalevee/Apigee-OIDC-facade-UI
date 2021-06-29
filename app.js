@@ -1,4 +1,4 @@
-// Okta API Access Management
+//  API Access Management
 
 ////////////////////////////////////////////////////
 require('dotenv').config()
