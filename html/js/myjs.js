@@ -1,27 +1,6 @@
 
 
-var signIn = new OktaSignIn(
-    {
-        baseUrl: '{{OKTA_TENANT}}'
-    }
-)
 
-signIn.session.get(function (res) {
-    // Okta session exists
-    if (res.status === 'ACTIVE') {
-        console.log("there is an Okta session.")
-        console.dir(res)
-        var arr = res.login.split("@") // get short login name
-
-        $("#username").html(arr[0])
-    }
-
-    // No session, or error retrieving the session. Render the Sign-In Widget.
-    else if (res.status === 'INACTIVE') {
-        console.log("there is no Okta session.")
-        $("#username").html("[none]")
-    }
-})
 
 function log_out() {
 
@@ -34,7 +13,7 @@ function log_out() {
             console.log("server-side access token cleared.")
             signIn.session.close(function (err) {
                 if (err) {
-                    // errors usually happen bc Okta session does not exist
+                    // errors usually happen bc  session does not exist
                     location.reload(true)
                 }
                 console.log("successfully signed user out.")
@@ -64,7 +43,7 @@ window.onload = function() {
         }
 
         // if we have an authorization code, send it to the server
-        // immediately to get an access token and id token from Okta.
+        // immediately to get an access token and id token from idp.
         // The tokens will be sent to the server, but the server side app
         // will also send them down to the browser for demo purposes
         if (urlParams.code) {
@@ -145,20 +124,4 @@ for (var i = 0; i < 12; i++)
 return text;
 }
 
-function redirectToOkta(level) {
-//var uri = '{{ISSUER}}/v1/authorize?response_type=code&client_id={{CLIENT_ID}}&redirect_uri={{REDIRECT_URI}}&response_mode=fragment'
 
-uri += '&state=' + getNonce()
-uri += '&nonce=' + getNonce()
-uri += '&prompt=login&scope=openid email address'
-
-// additional scopes
-//if (level === "silver" || level === "gold") { uri += " http://myapp.com/scp/silver"; };
-//if (level === "gold") { uri += " http://myapp.com/scp/gold"; }
-
-localStorage.setItem("authURI", uri);
-
-console.log("authn URI: " + uri);
-
-window.location = uri;
-}

@@ -3,7 +3,6 @@ var bodyParser = require("body-parser")
 
 var fs = require("fs")
 
-const OktaJwtVerifier = require('@okta/jwt-verifier')
 
 var jwt = require('jsonwebtoken');
 
@@ -13,9 +12,7 @@ var session = require("express-session")
 
 //*******************************************/
 
-const oktaJwtVerifier = new OktaJwtVerifier({
-	issuer: process.env.ISSUER
-})
+
 
 module.exports = function (app) {
 

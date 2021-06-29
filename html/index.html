@@ -35,15 +35,6 @@
 				console.log("authn uri: " + localStorage.getItem("authURI"));
 			}
 
-          /*  if (localStorage.getItem("id_token_decoded")) {
-                $("#username").html(localStorage.getItem("id_token_decoded").email);
-                $("#id_token_decoded").html("<pre>" + JSON.stringify(localStorage.getItem("id_token_decoded"), null, 1) + "</pre>");
-            }
-
-            if (localStorage.getItem("access_token_decoded")) {
-				$("#access_token_decoded").html("<pre>" + localStorage.getItem("access_token_decoded") + "</pre>");
-            } */
-
 			// look for parameters in url
 			urlParams = new URLSearchParams(window.location.search);
 			console.log("urlParams: " + urlParams);
@@ -76,7 +67,6 @@
                     if (obj.id_token_decoded) {
                         $("#username").html(obj.id_token_decoded.email);
 
-                       // $("#dropdown-logout").dataset.target = "#logoutModal";
                         var dropdownlogout = document.getElementById('dropdown-logout');
                         dropdownlogout.dataset.target = "#logoutModal";
                         
