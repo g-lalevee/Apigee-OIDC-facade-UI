@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>YAAD : OIDC</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+
+    <!-- Custom styles for this template-->
+    <link href="css/sb-admin-2.min.css" rel="stylesheet">
+    <script>
+
+		function log_out() {
+			localStorage.clear();
+			location.reload(true)
+		}
+
+		window.onload = function() {
+
+			// look for login url in local storage
+			// just for reference
+			if (localStorage.getItem("authURI")) {
+				console.log("authn uri: " + localStorage.getItem("authURI"));
+			}
+
+			// look for parameters in url
+			urlParams = new URLSearchParams(window.location.search);
+			console.log("urlParams: " + urlParams);
+
+			if (urlParams) {
+				console.log("urlParams.code: " + urlParams.get('code'));
+
+				// if we have an authorization code, send it to Apigeee
+				// immediately to get an access token and id token.
+				if (urlParams.get('code')) {
+					console.log("let's get a access token");
+					getAccessToken(urlParams.get('code'));
+				}
+			} 
+		}
+	</script>
+
+	<script>
+	function getAccessToken(code) {
+
+		$.ajax({
+			type: 'POST',
+			data: JSON.stringify({ "code": code}),
+			contentType: 'application/json',
+			url: '/getAccessToken',
+			success: function(data) {
+				var obj = JSON.parse(data)
+
+				if (obj.id_token_decoded) {
+					$("#username").html(obj.id_token_decoded.email)
+                    $("#id_token_decoded").html("<pre>" + JSON.stringify(obj.id_token_decoded, null, 1) + "</pre>")
+
+				} else {
+					$("#username").html(" - ")
+                    $("#id_token_decoded").html("<pre></pre>")
+				}
+                if (obj.id_token_decoded) {
+				    $("#access_token_decoded").html("<pre>" + obj.access_token_decoded + "</pre>")
+                } else {
+				    $("#access_token_decoded").html("<pre></pre>")
+                }
+			}
+		});	
+	}
+
+	// make a request to the API gateway
+	// request will go to the server-side app first so the app can include the access token
+	function getData(endpoint) {
+
+		var access_token = document.getElementById("access_token_decoded").innerHTML;
+		access_token = access_token.replace(/(<([^>]+)>)/gi, "");
+
+		console.log("access_token:", access_token);
+		$.ajax({
+			type: 'POST',
+			data: JSON.stringify({ "endpoint": endpoint, "access_token": access_token }),
+			contentType: 'application/json',
+			url: '/getData',
+			success: function(data) {
+				console.dir(data)
+
+				var obj
+
+				if (typeof data === 'object') { obj = data }
+				else { obj = JSON.parse(data) }
+
+				$("#results_" + endpoint).html("<pre>" + JSON.stringify(obj, null, 1) + "</pre>");
+			}
+		})
+	}
+
+	function getNonce() {
+		var text = "";
+		var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+		for (var i = 0; i < 12; i++)
+			text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+		return text;
+	}
+
+	function redirectToGCP() {
+		var uri = '{{ISSUER}}/authorize?response_type=code&client_id={{CLIENT_ID}}&redirect_uri={{REDIRECT_URI}}'
+		uri += '&response_type=code' ;
+		uri += '&state=' + getNonce() ;
+		uri += '&scope=openid email address' ;
+		
+		localStorage.setItem("authURI", uri);
+
+		console.log("authn URI: " + uri);
+
+		window.location = uri;
+	}
+
+	</script>
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-white sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center bg-primary" href="index.html">
+                <div class="sidebar-brand-icon">
+                    <img src="img/apigee.png" width="35">
+                </div>
+                <div class="sidebar-brand-text mx-3" style="font-size: 0.8rem">GCP Facade</div>
+            </a>
+
+            <!-- Divider -->
+            <li class="nav-item ">&nbsp;</li>
+
+            <!-- Nav Item - Authenticate -->
+            <li class="nav-item ">
+                <a class="nav-link" href="#" onclick="redirectToGCP()">
+                    <i class="fas fa-fw fa-user" style="color:#555"></i>
+                    <span style="color:#555">Authenticate</span></a>
+            </li>
+
+            <!-- Nav Item - Get Data -->
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="getData('products')">
+                    <i class="fas fa-fw fa-table" style="color:#555"></i>
+                    <span style="color:#555">Get Data</span></a>
+            </li>
+
+            <!-- Nav Item - Apigee -->
+            <li class="nav-item">
+            <a class="nav-link" href="https://login.apigee.com/login" target="_blank" rel="noopener noreferrer">
+                <img src="img/fa-apigee.png" width="17">
+                <span style="color:#555">Apigee</span>
+                <i class="fas fa-fw fa-external-link-alt" style="color:#555"></i>
+            </a>
+            </li>
+
+            <!-- Nav Item - Doc -->
+            <li class="nav-item">
+                <a class="nav-link" href="">
+                    <i class="fas fa-fw fa-book" style="color:#555"></i>
+                    <span style="color:#555">Documentation</span></a>
+            </li>
+
+            <!-- Nav Item - Git -->
+            <li class="nav-item">
+                <a class="nav-link" href="">
+                    <i class="fab fa-fw fa-git-alt" style="color:#555; font-size:120%;"></i>
+                    <span style="color:#555">Source</span>
+                    <i class="fas fa-fw fa-external-link-alt" style="color:#555"></i>
+                </a>
+            </li>
+            
+  
+      <!-- Sidebar Toggler (Sidebar) -->
+      <div class="text-center d-none d-md-inline">
+          <P></P>
+          <button class="rounded-circle border-0" style="background-color:#777;width:30px;height:30px; " id="sidebarToggle"></button>
+      </div>
+
+        </ul>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-primary topbar mb-4 static-top shadow">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                 
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav ml-auto">
+
+                        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+                        <li class="nav-item dropdown no-arrow d-sm-none">
+                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-search fa-fw"></i>
+                            </a>
+                            <!-- Dropdown - Messages -->
+                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                                aria-labelledby="searchDropdown">
+                                <form class="form-inline mr-auto w-100 navbar-search">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control bg-light border-0 small"
+                                            placeholder="Search for..." aria-label="Search"
+                                            aria-describedby="basic-addon2">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary" type="button">
+                                                <i class="fas fa-search fa-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </li>
+
+                       
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-white small" ID="username">-</span>
+                                <img class="img-profile rounded-circle"
+                                    src="img/undraw_profile.svg">
+                            </a>
+                            <!-- Dropdown - User Information -->
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Reload
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Logout
+                                </a>
+                            </div>
+                        </li>
+
+                    </ul>
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+                    <!-- Page Heading -->
+                    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+                        <h1 class="h3 mb-0 text-gray-800 bg-white">Demo</h1>
+                    </div>
+
+       
+
+                    <!-- Content Row -->
+                    <div class="row">
+                        <!-- Content Column -->
+                        <div class="col-lg-6 mb-4">
+                        <!-- Collapsable Card Example -->
+                        <div class="card shadow mb-4">
+                            <!-- Card Header - Accordion -->
+                            <a href="#collapseCard1" class="d-block card-header py-3" data-toggle="collapse"
+                                role="button" aria-expanded="true" aria-controls="collapseCard1">
+                                <h6 class="m-0 font-weight-bold text-primary">Identity Token</h6>
+                            </a>
+                            <!-- Card Content - Collapse -->
+                            <div class="collapse show" id="collapseCard1">
+                                <div class="card-body" id="id_token_decoded">
+                                    
+                                </div>
+                            </div>
+                        </div>
+
+                        </div>
+                        <!-- Content Column -->
+                        <div class="col-lg-6 mb-4">
+                            <!-- Approach -->
+                             <!-- Collapsable Card Example -->
+                             <div class="card shadow mb-4">
+                                <!-- Card Header - Accordion -->
+                                <a href="#collapseCard2" class="d-block card-header py-3" data-toggle="collapse"
+                                    role="button" aria-expanded="true" aria-controls="collapseCard2">
+                                    <h6 class="m-0 font-weight-bold text-primary">Access Token</h6>
+                                </a>
+                                <!-- Card Content - Collapse -->
+                                <div class="collapse show" id="collapseCard2">
+                                    <div class="card-body" id="access_token_decoded">
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- DataTales Example -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">Data</h6>
+                        </div>
+                        <div class="card-body" id="results_products">
+                            
+                        </div>
+                    </div>
+
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; xtof 2021</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="#" onclick="log_out()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages  <script src="js/myjs.js"></script>-->
+    <script src = 'https://ok1static.oktacdn.com/assets/js/sdk/okta-signin-widget/2.9.0/js/okta-sign-in.min.js'></script>
+	<script src = 'https://ok1static.oktacdn.com/assets/js/sdk/okta-auth-js/1.8.0/okta-auth-js.min.js'></script>
+    
+    <script src="js/sb-admin-2.min.js"></script>
+   
+
+   
+
+</body>
+
+</html>
