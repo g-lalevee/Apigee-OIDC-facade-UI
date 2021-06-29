@@ -1,7 +1,5 @@
 
 
-
-
 function log_out() {
 
     localStorage.clear();
