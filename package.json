@@ -1,13 +1,13 @@
 {
-  "name": "okta-api-am",
+  "name": "Apigee-OIDC-UI",
   "version": "1.0.0",
-  "description": "okta integrations with api gateways",
+  "description": "OIDC Integration with Apigee",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
   },
   "engines": {},
-  "author": "tom.smith@okta.com",
+  "author": "lalevee@google.com",
   "dependencies": {
     "@okta/jwt-verifier": "^1.0.0",
     "body-parser": "^1.19.0",
