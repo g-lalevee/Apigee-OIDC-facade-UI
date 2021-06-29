@@ -39,8 +39,8 @@ Clone this repository.
 npm install
 ```
 
-- Copy .env_example to .env and edit file
-- Edit .env file.<BR>
+- Copy **.env_example** to **.env**. 
+- Edit **.env** file.<BR>
     - Replace CLIENT_ID and CLIENT_SECRET values by Key and Secret values copied from Apigee Application **identityApp** (created during Identity Facade deployment, step 1). Examples: 
         - Key: xkey-nnnnnnn
         - Secret: xsecret
