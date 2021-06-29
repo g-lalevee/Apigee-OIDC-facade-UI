@@ -92,23 +92,26 @@
 
             var access_token = document.getElementById("access_token_decoded").innerHTML;
             access_token = access_token.replace(/(<([^>]+)>)/gi, "");
+            access_token=access_token.trim();
 
-            console.log("access_token:", access_token);
-            $.ajax({
-                type: 'POST',
-                data: JSON.stringify({ "endpoint": endpoint, "access_token": access_token }),
-                contentType: 'application/json',
-                url: '/getData',
-                success: function(data) {
-                    console.dir(data);
-                    var obj;
-                    if (typeof data === 'object') { obj = data }
-                    else { obj = JSON.parse(data) }
-                    console.log("et là ?");
-                    console.log(JSON.stringify(obj, null, 1));
-                    $("#results_data").html("<pre>" + JSON.stringify(obj, null, 1) + "</pre>");
-                }
-            })
+            console.log("access_token: >" + access_token + "<");
+            if (access_token && access_token != "") {                
+                $.ajax({
+                    type: 'POST',
+                    data: JSON.stringify({ "endpoint": endpoint, "access_token": access_token }),
+                    contentType: 'application/json',
+                    url: '/getData',
+                    success: function(data) {
+                        console.dir(data);
+                        var obj;
+                        if (typeof data === 'object') { obj = data }
+                        else { obj = JSON.parse(data) }
+                        console.log("et là ?");
+                        console.log(JSON.stringify(obj, null, 1));
+                        $("#results_data").html("<pre>" + JSON.stringify(obj, null, 1) + "</pre>");
+                    }
+                })
+            }
         }
 
         function getNonce() {
