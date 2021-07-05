@@ -2,12 +2,11 @@
 <html lang="en">
 
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="UI for Apigee OIDC Facade">
+    <meta name="author" content="lalevee">
 
     <title>Apigee Identity Facade</title>
 
@@ -29,8 +28,7 @@
 
 		window.onload = function() {
 
-			// look for login url in local storage
-			// just for reference
+			// look for login url in local storage, just for reference
 			if (localStorage.getItem("authURI")) {
 				console.log("authn uri: " + localStorage.getItem("authURI"));
 			}
@@ -61,24 +59,18 @@
                 url: '/getAccessToken',
                 success: function(data) {
                     var obj = JSON.parse(data)
-
-                    console.log(obj);
-                    
+                    console.log(obj);                  
                     if (obj.id_token_decoded) {
                         $("#username").html(obj.id_token_decoded.email);
-
                         var dropdownlogout = document.getElementById('dropdown-logout');
                         dropdownlogout.dataset.target = "#logoutModal";
-                        
                         $("#id_token_decoded").html("<pre>" + JSON.stringify(obj.id_token_decoded, null, 1) + "</pre>");
-                        //localStorage.setItem("id_token_decoded", obj.id_token_decoded);
                     } else {
                         $("#username").html(" - ")
                         $("#id_token_decoded").html("<pre></pre>")
                     }
                     if (obj.id_token_decoded) {
                         $("#access_token_decoded").html("<pre>" + obj.access_token_decoded + "</pre>");
-                        //localStorage.setItem("access_token_decoded", obj.access_token_decoded);
                     } else {
                         $("#access_token_decoded").html("<pre></pre>")
                     }
@@ -86,7 +78,7 @@
             });	
         }
 
-        // make a request to the API gateway
+        // make a request to the Apigee API Proxy
         // request will go to the server-side app first so the app can include the access token
         function getData(endpoint) {
 
@@ -114,30 +106,28 @@
             }
         }
 
+        // Generate random string
         function getNonce() {
             var text = "";
             var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
             for (var i = 0; i < 12; i++)
                 text += possible.charAt(Math.floor(Math.random() * possible.length));
-
             return text;
         }
 
-        function redirectToGCP() {
+        // send authentication request to IDP (Apigee -> redirect to IDP)
+        function redirectToIDP() {
             var uri = '{{ISSUER}}/authorize?response_type=code&client_id={{CLIENT_ID}}&redirect_uri={{REDIRECT_URI}}'
             uri += '&response_type=code' ;
             uri += '&state=' + getNonce() ;
             uri += '&scope=openid email address' ;
-            
             localStorage.setItem("authURI", uri);
-
             console.log("authn URI: " + uri);
-
             window.location = uri;
         }
 	</script>
 </head>
+
 
 <body id="page-top">
 
@@ -158,11 +148,9 @@
             <!-- Divider -->
             <li class="nav-item ">&nbsp;</li>
 
- 
-
             <!-- Nav Item - Authenticate -->
             <li class="nav-item ">
-                <a class="nav-link" href="#" onclick="redirectToGCP()">
+                <a class="nav-link" href="#" onclick="redirectToIDP()">
                     <i class="fas fa-fw fa-user" style="color:#555"></i>
                     <span style="color:#555">Authenticate</span></a>
             </li>
@@ -174,16 +162,24 @@
                     <span style="color:#555">Get Data</span></a>
             </li>
 
-            <!-- Nav Item - Apigee -->
-            <li class="nav-item">
-            <a class="nav-link" href="https://login.apigee.com/login" target="_blank" rel="noopener noreferrer">
-                <img src="img/fa-apigee.png" width="17">
-                <span style="color:#555">Apigee Login</span>
-                <i class="fas fa-fw fa-external-link-alt" style="color:#555"></i>
-            </a>
+            <!-- Nav Item - Apigee login -->
+            <li class="nav-item ">
+                <a class="nav-link" href="#" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true"
+                    aria-controls="collapseTwo">
+                    <img src="img/fa-apigee.png" width="17">                       
+                    <span style="color:#555">Apigee Login</span>
+                    <i class="fas fa-fw fa-external-link-alt" style="color:#555"></i>
+                </a>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                    data-parent="#accordionSidebar" data-toggle="collapse">
+                    <div class="py-2 collapse-inner rounded" style="background-color: #f8f9fc">
+                        <h6 class="collapse-header">Version:</h6>
+                        <a class="collapse-item" href="https://apigee.google.com/edge" target="_blank" rel="noopener noreferrer">Apigee X/hybrid</a>
+                        <a class="collapse-item" href="https://login.apigee.com/login" target="_blank" rel="noopener noreferrer">Apigee Edge</a>
+                    </div>
+                </div>
             </li>
-          
-  
+
       <!-- Sidebar Toggler (Sidebar) -->
       <div class="text-center d-none d-md-inline">
           <P></P>
@@ -207,36 +203,9 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                 
-
                     <!-- Topbar Navbar -->
                     <ul class="navbar-nav ml-auto">
-
-                        <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-                        <li class="nav-item dropdown no-arrow d-sm-none">
-                            <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-search fa-fw"></i>
-                            </a>
-                            <!-- Dropdown - Messages -->
-                            <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
-                                aria-labelledby="searchDropdown">
-                                <form class="form-inline mr-auto w-100 navbar-search">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control bg-light border-0 small"
-                                            placeholder="Search for..." aria-label="Search"
-                                            aria-describedby="basic-addon2">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-primary" type="button">
-                                                <i class="fas fa-search fa-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </li>
-
-                       
+                     
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
@@ -245,14 +214,10 @@
                                 <img class="img-profile rounded-circle"
                                     src="img/undraw_profile.svg">
                             </a>
+
                             <!-- Dropdown - User Information -->
                             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                 aria-labelledby="userDropdown">
-                          <!--      <a class="dropdown-item" href="#" onclick="location.reload(true)">
-                                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Reload
-                                </a>  
-                                <div class="dropdown-divider"></div> -->
                                 <a class="dropdown-item" href="#" data-toggle="modal" id="dropdown-logout">
                                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
                                     Logout
@@ -273,59 +238,47 @@
                         <h1 class="h3 mb-0 text-gray-800 bg-white">Demo</h1>
                     </div>
 
-       
-
-                    <!-- Content Row -->
+                    <!-- Content Row 1 -->
                     <div class="row">
-                        <!-- Content Column -->
+                        <!-- Content Column Identity Token -->
                         <div class="col-lg-6 mb-4">
-                        <!-- Collapsable Card Example -->
-                        <div class="card shadow mb-4">
-                            <!-- Card Header - Accordion -->
-                            <a href="#collapseCard1" class="d-block card-header py-3" data-toggle="collapse"
-                                role="button" aria-expanded="true" aria-controls="collapseCard1">
-                                <h6 class="m-0 font-weight-bold text-primary">Identity Token</h6>
-                            </a>
-                            <!-- Card Content - Collapse -->
-                            <div class="collapse " id="collapseCard1">
-                                <div class="card-body" id="id_token_decoded">
-                                    
+                            <div class="card shadow mb-4">
+                                <!-- Card Header -->
+                                <a href="#collapseCard1" class="d-block card-header py-3" data-toggle="collapse"
+                                    role="button" aria-expanded="true" aria-controls="collapseCard1">
+                                    <h6 class="m-0 font-weight-bold text-primary">Identity Token</h6>
+                                </a>
+                                <!-- Card Content -->
+                                <div class="collapse " id="collapseCard1">
+                                    <div class="card-body" id="id_token_decoded"></div>
                                 </div>
                             </div>
                         </div>
 
-                        </div>
-                        <!-- Content Column -->
+                        <!-- Content Column Access Token -->
                         <div class="col-lg-6 mb-4">
-                            <!-- Approach -->
-                             <!-- Collapsable Card Example -->
-                             <div class="card shadow mb-4">
-                                <!-- Card Header - Accordion -->
+                            <div class="card shadow mb-4">
+                                <!-- Card Header -->
                                 <a href="#collapseCard2" class="d-block card-header py-3" data-toggle="collapse"
                                     role="button" aria-expanded="true" aria-controls="collapseCard2">
                                     <h6 class="m-0 font-weight-bold text-primary">Access Token (opaque)</h6>
                                 </a>
-                                <!-- Card Content - Collapse -->
+                                <!-- Card Content -->
                                 <div class="collapse " id="collapseCard2">
-                                    <div class="card-body" id="access_token_decoded">
-                                        
-                                    </div>
+                                    <div class="card-body" id="access_token_decoded"></div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
 
-
-                    <!-- DataTales Example -->
+                    <!-- Content Column Data -->
                     <div class="card shadow mb-4">
                         <div class="card-header py-3">
                             <h6 class="m-0 font-weight-bold text-primary">Data</h6>
                         </div>
-                        <div class="card-body" id="results_data">
-                            
-                        </div>
+                        <div class="card-body" id="results_data"> </div>
                     </div>
-
 
                 </div>
                 <!-- /.container-fluid -->
@@ -377,16 +330,10 @@
     <!-- Bootstrap core JavaScript-->
     <script src="vendor/jquery/jquery.min.js"></script>
     <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
     <!-- Core plugin JavaScript-->
     <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
-
     <!-- Custom scripts for all pages  <script src="js/myjs.js"></script>-->
-   
     <script src="js/sb-admin-2.min.js"></script>
-   
-
-   
 
 </body>
 
