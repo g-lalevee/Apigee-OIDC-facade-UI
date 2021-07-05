@@ -16,7 +16,7 @@ Deploy the [Apigee GitHub DevRel Identity Facade proxy](https://github.com/apige
 
 Then, You must have **identity-facade-v1** proxy deployed in your Apigee organization.
 
-Edit **identity-facade-v1** proxy to be able to send ID Token to the client App.<BR>Update OA2-GenerateAccessToken, change line:
+Edit **identity-facade-v1** proxy to be able to send ID Token to the client App.<BR>Update **OA2-GenerateAccessToken** and change line:
 
  ```
  <Attribute name="id.token" ref="oidc.flow.jwt" display="false"/>
@@ -28,7 +28,16 @@ Edit **identity-facade-v1** proxy to be able to send ID Token to the client App.
   <Attribute name="id_token" ref="oidc.flow.jwt" display="true"/>
   ```
 
-
+> **_NOTE:_**  
+If you want to use the **/protected** endpoint provided by Apigee Devrel Identity Facade Apigee Proxy...<BR>
+Dependinf on IDP configured, you may not received an Identity Token having **name** and **email** variables set: Get Data result will be 
+```
+{"fault":{"faultstring":"Invalid JSON path $.name in policy EV-ExtractUserInfo.","detail":{"errorcode":"steps.extractvariables.InvalidJSONPath"}}}
+``` 
+To avoid this error message, edit **identity-facade-v1** proxy and update **EV-ExtractUserInfo**. Add line:
+```
+<IgnoreUnresolvedVariables>true</IgnoreUnresolvedVariables>
+```
 
 ### 2- Clone & Configure Apigee-OIDC-facade-UI
 
