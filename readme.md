@@ -20,6 +20,8 @@ Edit **identity-facade-v1** proxy to be able to send ID Token to the client App.
 
  ```
  <Attribute name="id.token" ref="oidc.flow.jwt" display="false"/>
+ or
+<Attribute name="id.jwt" ref="oidc.flow.jwt" display="false"/>
  ```
 
  to
