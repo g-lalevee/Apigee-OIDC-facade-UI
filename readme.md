@@ -18,17 +18,15 @@ Then, You must have **identity-facade-v1** proxy deployed in your Apigee organiz
 
 Edit **identity-facade-v1** proxy to be able to send ID Token to the client App.<BR>Update **OA2-GenerateAccessToken** and change line:
 
- ```
- <Attribute name="id.token" ref="oidc.flow.jwt" display="false"/>
- or
-<Attribute name="id.jwt" ref="oidc.flow.jwt" display="false"/>
- ```
+```
+<Attribute name="idp.jwt" ref="oidc.flow.jwt" display="false"/>
+```
 
  to
 
-  ```
-  <Attribute name="id_token" ref="oidc.flow.jwt" display="true"/>
-  ```
+```
+<Attribute name="idp.jwt" ref="oidc.flow.jwt" display="true"/>
+```
 
 > **_NOTE:_**  
 If you want to use the **/protected** endpoint provided by Apigee Devrel Identity Facade Apigee Proxy...<BR>
