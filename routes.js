@@ -53,17 +53,18 @@ module.exports = function (app) {
 			console.log(body);
 			var obj = JSON.parse(body);
 			if (obj.hasOwnProperty("access_token")) {
-				req.session.access_token = obj.access_token;
 				console.log("the access token is: " + req.session.access_token);
+				req.session.access_token = obj.access_token;
 			}
-			if (obj.hasOwnProperty("id_token")) {
-				req.session.id_token = obj.id_token;
+			if (obj.hasOwnProperty("idp.jwt")) {
+				console.log("The ID Token is" + obj["idp.jwt"]);
+			 	req.session.id_token = obj["idp.jwt"];
 			}
 			var response_to_browser = {}
 			response_to_browser.access_token = obj.access_token;
 			response_to_browser.access_token_decoded = obj.access_token;
-			response_to_browser.id_token = obj.id_token;
-			response_to_browser.id_token_decoded = jwt.decode(obj.id_token);
+			response_to_browser.id_token = obj["idp.jwt"];
+			response_to_browser.id_token_decoded = jwt.decode(obj["idp.jwt"]);
 			console.log(response_to_browser.id_token_decoded)
 			console.log("the response to the browser is: ")
 			console.dir(response_to_browser)
