@@ -29,7 +29,6 @@ Edit **identity-facade-v1** proxy to be able to send ID Token to the client App.
 ```
 
 > **_NOTE:_**  
-If you want to use the **/protected** endpoint provided by Apigee Devrel Identity Facade Apigee Proxy...<BR>
 Dependinf on IDP configured, you may not received an Identity Token having **name** and **email** variables set. If not, **Get Data** result will be:
 > ```
 > {"fault":{"faultstring":"Invalid JSON path $.name in policy EV-ExtractUserInfo.","detail":{"errorcode":"steps.extractvariables.InvalidJSONPath"}}}
@@ -41,8 +40,7 @@ Dependinf on IDP configured, you may not received an Identity Token having **nam
 
 ### 2- Clone & Configure Apigee-OIDC-facade-UI
 
-Clone this repository.
-
+- Clone this repository
 - Install dependencies
 ```
 npm install
