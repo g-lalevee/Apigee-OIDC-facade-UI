@@ -28,10 +28,22 @@
 
 		window.onload = function() {
 
+            // is PKCE enabled or not (cf .env file / IS_PKCE_ENABLED)
+            var pkceEnabled = "{{IS_PKCE_ENABLED}}";
+            isPkceEnabled = (pkceEnabled === "true")?true:false;
+
 			// look for login url in local storage, just for reference
 			if (localStorage.getItem("authURI")) {
 				console.log("authn uri: " + localStorage.getItem("authURI"));
 			}
+
+            if(isPkceEnabled) {
+                var codeVerifier = getNonce(32);
+                generateCodeChallenge(codeVerifier).then(function(codeChallenge) {
+                    localStorage.setItem("code_verifier", codeVerifier);
+                    localStorage.setItem("code_challenge",codeChallenge);
+                });
+            }
 
 			// look for parameters in url
 			urlParams = new URLSearchParams(window.location.search);
@@ -44,17 +56,30 @@
 				// immediately to get an access token and id token.
 				if (urlParams.get('code') ) {
 					console.log("let's get a access token");
-					getAccessToken(urlParams.get('code'));
+					getAccessToken(urlParams.get('code'),isPkceEnabled);
 				}
 			} 
+            if (isPkceEnabled) {
+                getPKCEParams();
+            } else {
+                $("#pkce_cv").html("<pre>PKCE is not enabled...</pre>");
+                $("#pkce_ccm").remove();
+                $("#pkce_cc").remove();
+            }
 		}
 	</script>
 
 	<script>
-        function getAccessToken(code) {
+        function getAccessToken(code,pkceEnabled) {
+
+            // set the JSON data to be posted
+            var jsonData = { "code": code };
+            if(pkceEnabled){
+                jsonData.code_verifier = localStorage.getItem("code_verifier");
+            }
             $.ajax({
                 type: 'POST',
-                data: JSON.stringify({ "code": code}),
+                data: JSON.stringify(jsonData),
                 contentType: 'application/json',
                 url: '/getAccessToken',
                 success: function(data) {
@@ -107,24 +132,43 @@
         }
 
         // Generate random string
-        function getNonce() {
+        function getNonce(ln) {
             var text = "";
             var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            for (var i = 0; i < 12; i++)
+            for (var i = 0; i < ln; i++)
                 text += possible.charAt(Math.floor(Math.random() * possible.length));
             return text;
         }
 
         // send authentication request to IDP (Apigee -> redirect to IDP)
-        function redirectToIDP() {
-            var uri = '{{ISSUER}}/authorize?response_type=code&client_id={{CLIENT_ID}}&redirect_uri={{REDIRECT_URI}}'
+        function redirectToIDP(pkceEnabled) {
+            var uri = '{{ISSUER}}/authorize?response_type=code&client_id={{CLIENT_ID}}&redirect_uri={{REDIRECT_URI}}';
             uri += '&response_type=code' ;
-            uri += '&state=' + getNonce() ;
+            uri += '&state=' + getNonce(12) ;
             uri += '&scope=openid email address' ;
+            uri += (pkceEnabled)?'&code_challenge=' + localStorage.getItem("code_challenge") : "";
+            uri += (pkceEnabled)?'&code_challenge_method=S256' : "";
             localStorage.setItem("authURI", uri);
             console.log("authn URI: " + uri);
             window.location = uri;
         }
+
+        async function generateCodeChallenge(codeVerifier) {
+            var digest = await crypto.subtle.digest("SHA-256",
+                new TextEncoder().encode(codeVerifier));
+
+            return btoa(String.fromCharCode(...new Uint8Array(digest)))
+                .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_')
+        }
+
+        function getPKCEParams() {
+            var cv = (localStorage.getItem("code_verifier") == null )? "value not set" : localStorage.getItem("code_verifier");
+            var cc = (localStorage.getItem("code_challenge") == null )? "value not set" : localStorage.getItem("code_challenge");
+            $("#pkce_cv").html("<pre>Code Verifier: " + cv + "</pre>");
+            $("#pkce_ccm").html("<pre>Code Challenge Method: S256</pre>");
+            $("#pkce_cc").html("<pre>Code Challenge: " + cc + "</pre>");
+        }
+        
 	</script>
 </head>
 
@@ -150,7 +194,7 @@
 
             <!-- Nav Item - Authenticate -->
             <li class="nav-item ">
-                <a class="nav-link" href="#" onclick="redirectToIDP()">
+                <a class="nav-link" href="#" onclick="redirectToIDP(isPkceEnabled)">
                     <i class="fas fa-fw fa-user" style="color:#555"></i>
                     <span style="color:#555">Authenticate</span></a>
             </li>
@@ -269,6 +313,23 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Content Column PKCE -->
+                        <div class="col-lg-6 mb-4">
+                            <div class="card shadow mb-4">
+                                <!-- Card Header -->
+                                <a href="#collapseCard3" class="d-block card-header py-3" data-toggle="collapse"
+                                    role="button" aria-expanded="true" aria-controls="collapseCard3">
+                                    <h6 class="m-0 font-weight-bold text-primary">PKCE Parameters</h6>
+                                </a>
+                                <!-- Card Content -->
+                                <div class="collapse " id="collapseCard3">
+                                    <div class="card-body" id="pkce_ccm"></div>
+                                    <div class="card-body" id="pkce_cc"></div>
+                                    <div class="card-body" id="pkce_cv"></div>
+                                </div>
+                            </div>
+                    </div>
 
                     </div>
 

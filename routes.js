@@ -26,6 +26,7 @@ module.exports = function (app) {
 
 	app.post('/getAccessToken', function(req, res, next) {
 		var code = req.body.code;
+		var code_verifier = req.body.code_verifier;
 		console.log("the authorization code is: " + code);
 		// exchange the authorization code
 		// for an access token
@@ -35,6 +36,7 @@ module.exports = function (app) {
 			form: {
 				"grant_type": "authorization_code",
 				"code": code,
+				"code_verifier": code_verifier,
 				"redirect_uri": process.env.REDIRECT_URI
 			  },
 			headers: {
